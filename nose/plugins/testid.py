@@ -274,9 +274,15 @@ class TestId(Plugin):
             return
         self.tests[adr] = self.id
         self.write('#%s ' % self.id)
+        # Pop the test ID into the environment so code under test can make use
+        # of it, e.g. to segregate per-test artifacts (log files)
+        os.environ["NOSE_TEST_ID"] = str(self.id)
         self.id += 1
 
     def afterTest(self, test):
+        # Remove os.environ["NOSE_TEST_ID"] without blowing up if it happens
+        # not to be there in the first place...
+        os.environ.pop("NOSE_TEST_ID", None)
         # None means test never ran, False means failed/err
         if test.passed is False:
             try:
